@@ -1,3 +1,56 @@
+~~~
+id	name	department_id	salary
+1	Иван	10	70000
+2	Анна	20	90000
+3	Пётр	10	65000
+4	Олег	30	80000
+5	Мария	40	85000
+6	Сергей	10	95000
+id	department_name
+10	IT
+20	Финансы
+30	Отдел кадров
+50	Маркетинг
+
+Найди отделы, где:
+
+сотрудников минимум 2;
+средняя зарплата больше 75 000.
+
+Вывести:
+
+department_name
+количество сотрудников
+среднюю зарплату
+
+Отсортировать по средней зарплате от большей к меньшей.~~~
+
+
+
+SELECT
+department_name,
+count(employees.id) as t,
+avg(salary) as t1
+from departments
+INNER JOIN employees
+on departments.id = employees.department_id
+GROUP BY department_name
+HAVING avg(salary) > 75000 and count(employees.id) >=2
+ORDER BY t1 DESC;
+
+
+SELECT
+department_name,
+count(employees.id) as t,
+avg(salary) as t1
+from departments
+INNER JOIN employees
+on departments.id = employees.department_id
+GROUP BY department_name
+HAVING avg(salary) > 75000 and count(employees.id) >=2
+ORDER BY t1 DESC;
+
+
 SELECT
 department_name,
 count(employees.id) as t,
@@ -8,3 +61,4 @@ on departments.id = employees.department_id
 and employees.salary > 70000
 GROUP BY department_name
 ORDER BY t DESC;
+~~~
