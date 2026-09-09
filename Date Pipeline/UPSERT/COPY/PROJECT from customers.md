@@ -4,17 +4,19 @@ CSV → Python (pandas) → PostgreSQL
 
 COPY
 
-orders.csv
+customers.csv
 
-
-id,customer_id,product_id,amount,status,created_at
-1,1,10,5000,completed,2026-09-01
-2,2,11,7000,completed,2026-09-01
-3,1,12,3000,cancelled,2026-09-01
-4,3,10,8000,completed,2026-09-02
-5,2,11,6000,completed,2026-09-02
-6,5,13,4500,completed,2026-09-03
-7,8,14,6200,completed,2026-09-03
+id,name,email,age,status,created_at
+1,Alex,alex@mail.com,25,active,2026-09-01
+2,Anna,anna@mail.com,32,active,2026-09-01
+3,John,john@mail.com,17,active,2026-09-02
+4,Mike,mike@mail.com,40,blocked,2026-09-02
+5,Lisa,lisa@mail.com,28,active,2026-09-02
+6,Peter,peter@mail.com,-5,active,2026-09-03
+7,Sarah,sarah@mail.com,29,pending,2026-09-03
+8,Tom,tom@mail.com,35,active,2026-09-03
+9,Emma,emma@mail.com,22,deleted,2026-09-04
+10,David,david@mail.com,999,active,2026-09-04
 
 -----------------------------------------------------------------
 
