@@ -1,7 +1,7 @@
 ~~~
 CSV → Python (pandas) → PostgreSQL
 
-INSERT
+to_sql()
 
 customers.csv
 
