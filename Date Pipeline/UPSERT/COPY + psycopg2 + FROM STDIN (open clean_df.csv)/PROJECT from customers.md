@@ -210,8 +210,9 @@ else:
         "COPY: количество строк не совпадает"
     )
 
+finally:
 
-
+    connection.close()
 
 
 
