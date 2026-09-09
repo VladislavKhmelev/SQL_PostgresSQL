@@ -171,9 +171,7 @@ else:
     )
 
 
-finally:
 
-    connection.close()
 
 
 
