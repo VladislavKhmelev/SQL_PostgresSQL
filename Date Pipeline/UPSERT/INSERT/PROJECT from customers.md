@@ -213,6 +213,8 @@ else:
     print("Missing IDs:", missing_ids)
     logging.error("Не загружены ID: %s", missing_ids)
 
+finally:
 
+    connection.close()
 
 ~~~
