@@ -1,5 +1,4 @@
 ~~~
-
 CSV → Python (pandas) → PostgreSQL
 
 INSERT
