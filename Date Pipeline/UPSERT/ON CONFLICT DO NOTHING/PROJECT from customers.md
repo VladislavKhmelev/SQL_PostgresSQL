@@ -200,6 +200,8 @@ else:
     logging.error("Не загружены ID: %s", missing_ids)
 
 
+finally:
 
+    connection.close()
 
 ~~~~
