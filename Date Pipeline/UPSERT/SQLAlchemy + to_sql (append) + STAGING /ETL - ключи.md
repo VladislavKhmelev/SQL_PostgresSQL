@@ -1,0 +1,1 @@
+SQLAlchemy + to_sql (append) + STAGING + TRUNCATE TABLE staging_customers + DROP TABLE IF EXISTS validated_customers + CREATE TABLE validated_customers (error_reason) +  error_customers + customers (SQLAlchemy ---> on conflict) + log + post-check
