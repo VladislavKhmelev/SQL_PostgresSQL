@@ -75,6 +75,7 @@ COPY предназначен именно для массовой загруз�
 
 
 4. psql \copy
+без Pandas и без Python
 Она похожа на COPY, но файл читается клиентом, а не сервером.
 
 \copy raw_orders FROM 'orders.csv' WITH CSV HEADER
