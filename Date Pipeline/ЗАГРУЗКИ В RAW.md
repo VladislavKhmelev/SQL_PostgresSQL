@@ -79,4 +79,13 @@ COPY предназначен именно для массовой загруз�
 Она похожа на COPY, но файл читается клиентом, а не сервером.
 
 \copy raw_orders FROM 'orders.csv' WITH CSV HEADER
+
+
+5. PostgreSQL COPY FROM напрямую с серверной стороны
+
+COPY raw_orders
+FROM '/path/orders.csv'
+WITH CSV HEADER;
+
+здесь файл должен быть доступен самому серверу PostgreSQL, а не просто находиться на твоём компьютере.
 ~~~
