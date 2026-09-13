@@ -70,7 +70,12 @@ NULLIF(  ,'')
 
 CREATE TABLE validated_suppliers AS
 SELECT
-NULLIF(   trim(supplier_id)   ,'')::int as     supplier_id,       
+ CASE
+        WHEN NULLIF(TRIM(supplier_id), '') ~ '^\d+$'
+             AND NULLIF(TRIM(supplier_id), '')::int > 0
+        THEN NULLIF(TRIM(supplier_id), '')::int
+        ELSE NULL
+    END,      
 NULLIF(   INITCAP( trim(supplier_name)   )  ,'')::text as         supplier_name, 
 NULLIF(  upper(trim(country) )  ,'') ::text as      country,                     
 NULLIF( lower(trim(email)  )   ,'') ::text as  email ,       
