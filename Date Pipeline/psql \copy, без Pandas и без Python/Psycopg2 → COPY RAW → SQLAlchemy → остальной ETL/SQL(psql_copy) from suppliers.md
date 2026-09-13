@@ -74,7 +74,11 @@ NULLIF(   trim(supplier_id)   ,'')::int as     supplier_id,
 NULLIF(   INITCAP( trim(supplier_name)   )  ,'')::text as         supplier_name, 
 NULLIF(  upper(trim(country) )  ,'') ::text as      country,                     
 NULLIF( lower(trim(email)  )   ,'') ::text as  email ,       
-NULLIF( INITCAP(trim(active)  )  ,'') ::boolean as  active ,     
+CASE
+    WHEN LOWER(TRIM(active)) IN ('true', 'false')
+        THEN TRIM(active)::boolean
+    ELSE NULL
+END,  
 
      CASE
         WHEN contract_start ~ '^\d{4}-\d{2}-\d{2}$'
