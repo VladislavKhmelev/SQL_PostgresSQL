@@ -68,14 +68,22 @@ NULLIF(  ,'')
 #!!!!!ДОБАВЛЯЕМ ПРАВИЛО УБРАТЬ СИРОТ
 
 
+--  '^\d+$'    состоит только из цифр?
+
 CREATE TABLE validated_suppliers AS
 SELECT
- CASE
-        WHEN NULLIF(TRIM(supplier_id), '') ~ '^\d+$'
-             AND NULLIF(TRIM(supplier_id), '')::int > 0
-        THEN NULLIF(TRIM(supplier_id), '')::int
-        ELSE NULL
-    END as supplier_id,      
+CASE
+    WHEN NULLIF(TRIM(supplier_id), '') IS NULL
+        THEN NULL
+
+    WHEN TRIM(supplier_id) !~ '^\d+$'
+        THEN NULL
+
+    WHEN TRIM(supplier_id)::int > 0
+        THEN TRIM(supplier_id)::int
+
+    ELSE NULL
+END AS supplier_id,      
 NULLIF(   INITCAP( trim(supplier_name)   )  ,'')::text as         supplier_name, 
 NULLIF(  upper(trim(country) )  ,'') ::text as      country,                     
 NULLIF( lower(trim(email)  )   ,'') ::text as  email ,       
@@ -103,14 +111,15 @@ END as active,
      NULLIF(
     CONCAT_WS(
         '; ',
-        CASE
-            WHEN  NULLIF(   trim(supplier_id)   ,'')  is null or NULLIF(   trim(supplier_id)   ,'')::int <=0
-                THEN 'supplier_id <= 0 or supplier_id is null'
-        END,
+       CASE
+    WHEN NULLIF(TRIM(supplier_id), '') IS NULL
+        THEN 'supplier_id is null'
 
-        CASE
-            WHEN NULLIF(   INITCAP( trim(supplier_name)   )  ,'') is null  
-                THEN 'supplier_name is NULL'
+    WHEN TRIM(supplier_id) !~ '^\d+$'
+        THEN 'supplier_id invalid format'
+
+    WHEN TRIM(supplier_id)::int <= 0
+        THEN 'supplier_id <= 0'
         END,
 
         CASE
