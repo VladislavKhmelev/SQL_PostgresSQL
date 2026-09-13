@@ -75,7 +75,7 @@ SELECT
              AND NULLIF(TRIM(supplier_id), '')::int > 0
         THEN NULLIF(TRIM(supplier_id), '')::int
         ELSE NULL
-    END,      
+    END as supplier_id,      
 NULLIF(   INITCAP( trim(supplier_name)   )  ,'')::text as         supplier_name, 
 NULLIF(  upper(trim(country) )  ,'') ::text as      country,                     
 NULLIF( lower(trim(email)  )   ,'') ::text as  email ,       
@@ -83,7 +83,7 @@ CASE
     WHEN LOWER(TRIM(active)) IN ('true', 'false')
         THEN TRIM(active)::boolean
     ELSE NULL
-END,  
+END as active,  
 
      CASE
         WHEN contract_start ~ '^\d{4}-\d{2}-\d{2}$'
