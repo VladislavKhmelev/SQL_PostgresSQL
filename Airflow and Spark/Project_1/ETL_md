@@ -1,0 +1,259 @@
+~~~
+# ────────────────────────────────────────────
+# SPARK + POSTGRESQL
+# ────────────────────────────────────────────
+
+import os
+
+from dotenv import load_dotenv
+from pyspark.sql import SparkSession
+from pathlib import Path
+from sqlalchemy import create_engine, text
+
+
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+
+
+# ────────────────────────────────────────────
+# PYSPARK
+# ────────────────────────────────────────────
+
+os.environ["PYSPARK_PYTHON"] = "python"
+os.environ["PYSPARK_DRIVER_PYTHON"] = "python"
+
+
+# ────────────────────────────────────────────
+# ENV — POSTGRESQL
+# ────────────────────────────────────────────
+
+load_dotenv(
+    "/opt/airflow/.env",
+    override=True
+)
+
+print("DB_USER:", repr(os.getenv("DB_USER")))
+print("DB_HOST:", repr(os.getenv("DB_HOST")))
+print("DB_PORT:", repr(os.getenv("DB_PORT")))
+print("DB_NAME:", repr(os.getenv("DB_NAME")))
+print("DB_PASSWORD length:", len(os.getenv("DB_PASSWORD") or ""))
+# ────────────────────────────────────────────
+# POSTGRESQL
+# ────────────────────────────────────────────
+
+pg_host = os.getenv("DB_HOST")
+pg_port = os.getenv("DB_PORT")
+pg_database = os.getenv("DB_NAME")
+pg_user = os.getenv("DB_USER")
+pg_password = os.getenv("DB_PASSWORD")
+
+pg_url = (
+    f"jdbc:postgresql://"
+    f"{pg_host}:{pg_port}/{pg_database}"
+)
+
+pg_driver = "org.postgresql.Driver"
+
+
+
+
+
+# ────────────────────────────────────────────
+# START PIPELINE
+# ────────────────────────────────────────────
+
+#------def(1)--------------------------------------
+
+def open_file():
+    spark = (
+        SparkSession.builder
+        .appName("ProductPipeline")
+        .config(
+            "spark.jars",
+            "/opt/airflow/jars/postgresql-42.7.12.jar"
+        )
+        .master("local[4]")
+        .getOrCreate()
+    )
+
+    spark.sparkContext.setLogLevel("ERROR")
+
+
+    df = spark.read.csv(
+        str(DATA_DIR / "product.csv"),
+        header=True,
+        inferSchema=True
+    )
+
+
+    print("CSV path:", DATA_DIR / "product.csv")
+    print("Количество строк:", df.count())
+    df.show(20, truncate=False)
+
+
+
+#------def(2)--------------------------------------
+
+def create_tables():
+
+
+    engine = create_engine(
+        f"postgresql+psycopg2://"
+        f"{pg_user}:{pg_password}"
+        f"@{pg_host}:{pg_port}/{pg_database}"
+    )
+
+
+
+
+
+    with engine.begin() as conn:
+
+        conn.execute(text("""
+        CREATE table if not EXISTS raw_product (
+        product_id int PRIMARY key,
+        title text,
+        category text,
+        price NUMERIC(10,2),
+        stock int
+        );
+    
+        """))
+
+
+
+        conn.execute(text("""
+        CREATE table if not EXISTS staging_product (
+        product_id int,
+        title text,
+        category text,
+        price NUMERIC(10,2),
+        stock int
+        );
+    
+        """))
+
+
+# #------def(3)--------------------------------------
+
+def load_staging():
+
+    spark = (
+        SparkSession.builder
+        .appName("ProductPipeline")
+        .config(
+            "spark.jars",
+            "/opt/airflow/jars/postgresql-42.7.12.jar"
+        )
+        .master("local[4]")
+        .getOrCreate()
+    )
+
+    spark.sparkContext.setLogLevel("ERROR")
+
+    df = spark.read.csv(
+        str(DATA_DIR / "product.csv"),
+        header=True,
+        inferSchema=True
+    )
+
+    df.write \
+        .format("jdbc") \
+        .option("url", pg_url) \
+        .option("dbtable", "staging_product") \
+        .option("user", pg_user) \
+        .option("password", pg_password) \
+        .option("driver", pg_driver) \
+        .mode("overwrite") \
+        .save()
+
+
+
+
+# #------def(4)--------------------------------------
+
+def upsert_raw():
+
+
+    spark = (
+        SparkSession.builder
+        .appName("ProductPipeline")
+        .config(
+            "spark.jars",
+            "/opt/airflow/jars/postgresql-42.7.12.jar"
+        )
+        .master("local[4]")
+        .getOrCreate()
+    )
+
+    spark.sparkContext.setLogLevel("ERROR")
+
+    engine = create_engine(
+        f"postgresql+psycopg2://"
+        f"{pg_user}:{pg_password}"
+        f"@{pg_host}:{pg_port}/{pg_database}"
+    )
+
+    with engine.begin() as conn:
+
+
+        conn.execute(text("""
+    
+        UPDATE raw_product AS t
+            SET
+                title = s.title,
+                category = s.category,
+                price = s.price,
+                stock = s.stock
+            FROM staging_product AS s
+            WHERE s.product_id = t.product_id
+        """))
+
+
+
+        conn.execute(text("""
+        INSERT INTO raw_product (
+            product_id,
+            title,
+            category,
+            price,
+            stock
+        )
+        SELECT
+            s.product_id,
+            s.title,
+            s.category,
+            s.price,
+            s.stock
+        FROM staging_product AS s
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM raw_product AS t
+            WHERE t.product_id = s.product_id
+        )
+    
+        """))
+
+
+
+        conn.execute(text("""
+        truncate table staging_product;
+    
+        """))
+
+
+
+    df = (
+        spark.read
+        .format("jdbc")
+        .option("url", pg_url)
+        .option("dbtable", "raw_product")
+        .option("user", pg_user)
+        .option("password", pg_password)
+        .option("driver", pg_driver)
+        .load()
+    )
+
+    df.show()
+
+~~~
